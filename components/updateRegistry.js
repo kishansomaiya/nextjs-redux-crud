@@ -9,36 +9,20 @@ import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import Box from '@mui/material/Box';
 
-import { useReducer, useState, useEffect } from "react";
+import { useReducer } from "react";
 import { ObjectFlags } from 'typescript';
 import Success from './success';
 import Bug from "./bug";
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { getRecord, getRecords, updateRecord } from '../lib/helper';
-import { Country, State } from "country-state-city";
 
 
-
-
-
-export default function UpdateRegistry({ formId, formData, setFormData }) {
-
-    const [selectedCountry, setSelectedCountry] = useState(null);
-
-
-    const all_countries = Country.getAllCountries()
-    const states = State.getAllStates()
-
-
-
-    useEffect(() => {
-        console.log(selectedCountry);
-    }, [selectedCountry])
+export default function UpdateRegistry({formId, formData, setFormData}) {
 
     const queryClient = useQueryClient()
-    const { isLoading, isError, data, error } = useQuery(['records', formId], () => getRecord(formId))
-    const UpdateMutation = useMutation((newData) => updateRecord(formId, newData), {
-        onSuccess: async (data) => {
+    const {isLoading, isError, data, error} = useQuery(['records', formId], () => getRecord(formId))
+    const UpdateMutation = useMutation((newData)=>updateRecord(formId, newData),{
+        onSuccess: async(data)=>{
             //queryClient.setQueryData('records',(old) => (data))
             queryClient.prefetchQuery('records', getRecords)
         }
@@ -471,81 +455,129 @@ export default function UpdateRegistry({ formId, formData, setFormData }) {
 
     const countries = countries_code.map(obj => obj.label)
 
-    if (isLoading) return <div>Loading...</div>
-    if (isError) return <div>Error</div>
+    if(isLoading) return <div>Loading...</div>
+    if(isError) return <div>Error</div>
 
     const { sku, name, desc, shortDesc, image, category, price, brand, partNumber, family, engine, provider, status } = data;
-
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         let updated = Object.assign({}, data, formData)
         console.log(updated)
         await UpdateMutation.mutate(updated)
-    }
+    }    
 
-    return (
-        <>
+    return(
+        <Box
+        component={"form"}
+        sx={{
+            '& > :not(style)': { m: 1, width: '25ch' },
+        }}
+        noValidate
+        autoComplete="off"
+        onSubmit={handleSubmit}
+    >
+        <br />
 
-            <form onSubmit={handleSubmit}>
+        <TextField name="sku" onChange={setFormData} required inputProps={{ minLength: 5 }} label="First Name" variant="outlined" placeholder='First Name' />
+        <TextField name="name" onChange={setFormData} required inputProps={{ minLength: 5 }} label="Last Name" variant="outlined" placeholder='Last Name' />
 
-                <input name='sku' type='text' required onChange={setFormData} minLength={5} placeholder='First Name' style={{ padding: '10px', border: '2px solid grey', margin: '0 20px 0 0' }} />
+        <TextField name="provider" onChange={setFormData} required type={"email"} label="Email" variant="outlined" placeholder='Imagen' />
+        <Autocomplete
+            id="country-select-demo"
 
-                <input name='name' type='text' required onChange={setFormData} minLength={5} placeholder='Last Name' style={{ padding: '10px', border: '2px solid grey', margin: '0 20px 0 0' }} />
+            sx={{ width: 200 }}
+            options={countries_code}
 
-                <input name='provider' type='email' required onChange={setFormData} placeholder='Email' style={{ padding: '10px', border: '2px solid grey' }} />
+            autoHighlight
+            getOptionLabel={(option) => "+" + option.phone}
+            renderOption={(props, option) => (
+                <Box
+                    component="li"
 
+                    {...props}
+                >
+                    {option.label} ({option.code}) +{option.phone}
+                </Box>
+            )}
+            renderInput={(params) => (
+                <TextField
+                    {...params}
+                    name='shortDesc'
+                    onChange={setFormData}
+                    type={"tel"}
+                    label="country code"
+                    required
+                    inputProps={{
+                        ...params.inputProps,
+                        autoComplete: "new-password",
+                        maxLength: 13 // disable autocomplete and autofill
+                    }}
+                />
+            )}
+        /><TextField name="family" type={'tel'} onChange={setFormData} label="number" variant="outlined" placeholder='number' />
+        {/* <TextField name="shortDesc" onChange={setFormData} label="Descripción corta" variant="outlined" placeholder='Descripción corta' /> */}
 
-                <br />
-                <br />
-                <br />
+        {/* <TextField name="category" onChange={setFormData} label="Categoria" variant="outlined" placeholder='Categoria' /> */}
+        <Autocomplete
+            id="country-select-demo"
 
-                <select name='shortDesc' onChange={setFormData} style={{ padding: '10px', border: '2px solid grey', margin: '0 20px 0 0' }}>
-                    {
-                        countries_code.map((country) => {
-                            return <option value={"+" + country.phone}>{country.label + "(+" + country.phone + ")"}</option>
-                        })
-                    }
+            sx={{ width: 300 }}
+            options={countries}
 
-                </select>
-                <input name='family' value={selectedCountry} onChange={setFormData} placeholder='Mobile number' style={{ padding: '10px', border: '2px solid grey' }} minLength={10} maxLength={11} />
+            autoHighlight
+            renderOption={(props, option) => (
+                <Box
+                    component="li"
+                    sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
+                    {...props}
+                >
+                    {option}
+                </Box>
+            )}
+            renderInput={(params) => (
+                <TextField
+                    {...params}
+                    name='category'
+                    onChange={setFormData}
+                    label="country"
+                    required
+                    inputProps={{
+                        ...params.inputProps,
+                        autoComplete: "new-password" // disable autocomplete and autofill
+                    }}
+                />
+            )}
+        />
+        <TextField name="desc" onChange={setFormData} required label="Address 1" variant="outlined" placeholder='Address 1' />
+        <TextField name="price" onChange={setFormData} label="Address 2" variant="outlined" placeholder='Address 2' />
+        <TextField name="brand" onChange={setFormData} label="State" variant="outlined" placeholder='State' />
+        <TextField name="partNumber" onChange={setFormData} label="Zip" variant="outlined" placeholder='Zip Code' />
+        {/* <TextField name="family" onChange={setFormData} label="Familia" variant="outlined" placeholder='Familia' />
+        <TextField name="engine" onChange={setFormData} label="Motor" variant="outlined" placeholder='Motor' />
+        <TextField name="image" onChange={setFormData} label="Proveedor" variant="outlined" placeholder='Proveedor' /> */}
+        {/* <FormControl>
+            <FormLabel id="demo-row-radio-buttons-group-label">Estatus</FormLabel>
+            <RadioGroup
+                row
+                aria-labelledby="demo-row-radio-buttons-group-label"
+                name="status"
+                onChange={setFormData}
+            >
+                <FormControlLabel value="Activo" control={<Radio />} label="Activo" />
+                <FormControlLabel value="Inactivo" control={<Radio />} label="Inactivo" />
+            </RadioGroup>
+        </FormControl> */}
 
-                <br /><br /><br />
-
-                <select name='category' required onChange={setFormData} style={{ padding: '10px', border: '2px solid grey', margin: '0 20px 0 0' }}>
-                    {
-
-                        all_countries.map((country) => {
-                            return <option value={country.name} >{country.name}</option>
-                        })
-                    }
-
-                </select>
-
-
-                <select name='brand' onChange={setFormData} style={{ padding: '10px', border: '2px solid grey', margin: '0 20px 0 0' }}>
-                    {
-                        states.map((state) => {
-                            return <option value={state.name}>{state.name}</option>
-                        })
-                    }
-
-                </select>
-
-                <input name="partNumber" onChange={setFormData} required placeholder='Zip Code' style={{ padding: '10px', border: '2px solid grey' }} />
-
-
-                <br />
-                <br />
-                <br />
-
-                <input name="desc" onChange={setFormData} required placeholder='Address 1' style={{ padding: '10px', border: '2px solid grey', margin: '0 20px 0 0' }} />
-
-                <input name="price" onChange={setFormData} placeholder='Address 2' style={{ padding: '10px', border: '2px solid grey', margin: '0 20px 0 0' }} />
-
-                <button type='submit' style={{ padding: '15px', border: 'none', borderRadius: '20px', fontSize: '15px', backgroundColor: '#185EA5', color: '#fff' }}>Submit</button>
-
-            </form>
-        </>
-
+        <Button
+            variant="contained"
+            type="submit"
+            color="success" // Set the disabled attribute
+        >
+            Submit
+        </Button>
+        <br />
+    </Box>
+            
     )
 }
